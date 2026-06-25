@@ -1,0 +1,25 @@
+{
+  "cif": {"page":1,"x":386,"y":743},
+
+  "name": {"page":1,"x":48,"y":606},
+
+  "deposit": {"page":1,"x":132,"y":416},
+  "deposit_words": {"page":1,"x":200,"y":415},
+
+  "applicant_name": {"page":1,"x":195,"y":385},
+  "father_name": {"page":1,"x":191,"y":376},
+  "gender": {"page":1,"x":193,"y":351},
+  "dob": {"page":1,"x":194,"y":329},
+  "aadhaar": {"page":1,"x":194,"y":317},
+  "pan": {"page":1,"x":193,"y":303},
+
+  "present_address": {"page":1,"x":192,"y":257},
+  "permanent_address": {"page":1,"x":194,"y":222},
+
+  "mobile": {"page":1,"x":194,"y":212},
+  "email": {"page":1,"x":194,"y":200},
+
+  "nominee_name": {"page":2,"x":64,"y":344},
+  "nominee_relation": {"page":2,"x":71,"y":320},
+  "nominee_share": {"page":2,"x":424,"y":347}
+}
