@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Contact Us – {{ site_name }}{% endblock %}
+{% block content %}<div class="card">
+<h1>Contact Us</h1>
+<p>Have a question, found an error in a guide, or want to report a problem with the form tool? Email us and we will reply as soon as we can.</p>
+<p><strong>Email:</strong> <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+<p>Please do not send Aadhaar, PAN, account numbers or other sensitive documents by email. We will never ask for them.</p>
+<p class="meta">We cannot help with account-specific issues such as balances, passbooks or transactions. Please contact your post office or India Post for those.</p>
+</div>{% endblock %}

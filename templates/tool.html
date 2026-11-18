@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Post Office Account Opening Form Filler – {{ site_name }}{% endblock %}
+{% block desc %}Free online tool to fill the India Post account opening form (SB-AOF) and download a print-ready PDF.{% endblock %}
+{% block content %}
+<div class="card">
+<h1>Post Office Account Opening Form</h1>
+<p>Fill in the details below and download a PDF with your answers placed on the form. Please read the <a href="/disclaimer">disclaimer</a>: always verify the printed form against your documents before submitting it.</p>
+<form action="/generate" method="post" autocomplete="off">
+<div class="section">
+    <h3>Deposit Details</h3>
+  <div class="grid">
+    <select name="scheme" aria-label="Scheme">
+      <option value="">Select Scheme</option>
+      {% for s in ["Savings","RD","1YR TD","2YR TD","3YR TD","5YR TD","MIS","SSA","PPF","NSC","KVP","SCSS"] %}<option>{{ s }}</option>{% endfor %}
+    </select>
+    <input type="number" id="deposit" name="deposit" placeholder="Deposit Amount" min="0">
+    <input type="text" id="deposit_words" name="deposit_words" placeholder="Amount in Words" readonly>
+  </div>
+</div>
+<div class="section">
+  <h3>Applicant Details</h3>
+  <div class="grid">
+    <input type="text" id="applicant_name" name="applicant_name" placeholder="Applicant Name">
+    <input type="text" id="father_name" name="father_name" placeholder="Father Name">
+    <select id="gender" name="gender" aria-label="Gender"><option value="">Select Gender</option><option>Male</option><option>Female</option><option>Other</option></select>
+    <input type="text" id="dob" name="dob" placeholder="DOB (DD/MM/YYYY)">
+    <input type="text" id="aadhaar" name="aadhaar" placeholder="Aadhaar Number" inputmode="numeric" maxlength="14">
+    <input type="text" id="pan" name="pan" placeholder="PAN Number" maxlength="10">
+    <input type="text" id="mobile" name="mobile" placeholder="Mobile Number" inputmode="tel">
+    <input type="email" id="email" name="email" placeholder="Email ID">
+  </div>
+</div>
+<div class="section">
+  <h3>Address Details</h3>
+  <textarea id="present_address" name="present_address" placeholder="Present Address"></textarea><br><br>
+  <textarea id="permanent_address" name="permanent_address" placeholder="Permanent Address"></textarea>
+</div>
+<div class="section">
+  <h3>Nominee Details</h3>
+  <div class="grid">
+    <input type="text" name="nominee_name" placeholder="Nominee Name">
+    <input type="text" name="nominee_relation" placeholder="Relationship">
+    <input type="text" name="nominee_share" placeholder="Share %">
+  </div>
+</div>
+<div class="notice">Your details are used only to create the PDF. Nothing is saved on our server: the PDF is created in memory and sent straight back to you. See the <a href="/privacy-policy">Privacy Policy</a>.</div>
+<button type="submit">Generate PDF</button>
+</form>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Tips before you submit</h2>
+  <ul>
+    <li>Make sure the name matches your Aadhaar/PAN exactly.</li>
+    <li>Check that the amount in figures and words agree.</li>
+    <li>Do not forget the nominee and your signatures.</li>
+  </ul>
+  <p>New to this? Read our <a href="/guides/post-office-savings-account-opening-guide">account opening guide</a> and <a href="/guides/form-filling-mistakes-and-tips">common form-filling mistakes</a>.</p>
+</div>
+
+<script>
+function numberToWords(num){
+ const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+ const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+ function c(n){
+  if(n<20)return ones[n];
+  if(n<100)return tens[Math.floor(n/10)]+(n%10?' '+ones[n%10]:'');
+  if(n<1000)return ones[Math.floor(n/100)]+' Hundred '+(n%100?c(n%100):'');
+  if(n<100000)return c(Math.floor(n/1000))+' Thousand '+(n%1000?c(n%1000):'');
+  if(n<10000000)return c(Math.floor(n/100000))+' Lakh '+(n%100000?c(n%100000):'');
+  return c(Math.floor(n/10000000))+' Crore '+(n%10000000?c(n%10000000):'');
+ }
+ return c(num).replace(/\s+/g,' ').trim()+' Rupees Only';
+}
+document.getElementById('deposit').addEventListener('input',function(){
+ var a=parseInt(this.value)||0;
+ document.getElementById('deposit_words').value=a?numberToWords(a):'';
+});
+</script>
+{% endblock %}

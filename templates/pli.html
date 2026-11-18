@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}PLI Premium Calculator – Monthly Premium by Age and Sum Assured | {{ site_name }}{% endblock %}
+{% block desc %}Free PLI premium calculator: choose your age at entry, maturity age and sum assured to see the monthly premium, yearly premium and total premium. Includes the full rate table.{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>PLI Premium Calculator</h1>
+  <p>Find the estimated monthly premium for a Postal Life Insurance (PLI) policy. Enter your age at entry, choose the age at maturity and type the sum assured. The result updates instantly and nothing you enter leaves your device.</p>
+
+  <div class="grid">
+    <div><label for="pli-age"><strong>Age at entry</strong> ({{ min_age }}–{{ max_age }})</label>
+      <input type="number" id="pli-age" inputmode="numeric" min="{{ min_age }}" max="{{ max_age }}" placeholder="e.g. 30"></div>
+    <div><label for="pli-mat"><strong>Age at maturity</strong></label>
+      <select id="pli-mat"><option value="">Enter a valid age first</option></select></div>
+    <div><label for="pli-sa"><strong>Sum assured (₹)</strong></label>
+      <input type="number" id="pli-sa" inputmode="numeric" min="1000" step="1000" placeholder="e.g. 500000"></div>
+    <div><label for="pli-bonus"><strong>Bonus rate</strong> (₹ per ₹1,000 per year)</label>
+      <input type="number" id="pli-bonus" inputmode="decimal" min="0" step="0.5" value="{{ bonus_rate }}"></div>
+  </div>
+  <noscript><p class="notice">This calculator needs JavaScript. You can still read the rate table below and calculate by hand.</p></noscript>
+
+  <div id="pli-err" class="notice" role="alert" style="display:none"></div>
+  <div id="pli-out" class="result" aria-live="polite" style="display:none">
+    <h2 style="margin-top:0">Estimated premium</h2>
+    <p class="big" id="pli-monthly"></p>
+    <ul>
+      <li>Rate used: <strong id="pli-rate"></strong> per month</li>
+      <li>Policy term: <strong id="pli-term"></strong></li>
+      <li>Yearly premium: <strong id="pli-yearly"></strong></li>
+      <li>Total premiums over the term: <strong id="pli-total"></strong></li>
+      <li id="pli-bonus-row">Estimated bonus: <strong id="pli-bonus-amt"></strong></li>
+      <li id="pli-maturity-row">Estimated maturity amount (sum assured + bonus): <strong id="pli-maturity"></strong></li>
+    </ul>
+  </div>
+  <div class="notice">This is an estimate from the premium rate table and the bonus rate you enter. Actual premium can differ because of rebates, payment mode, taxes or charges and changes in rules. Confirm with your post office before you buy.</div>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">How the calculator works</h2>
+  <p>Bonus is estimated as sum assured ÷ 1,000 × bonus rate × policy term in years, and the maturity amount is the sum assured plus that bonus. For example, ₹20,00,000 over 25 years at a bonus rate of ₹52 gives 2,000 × 52 × 25 = ₹26,00,000 bonus and ₹46,00,000 at maturity. The bonus rate is declared by the department and can change from year to year, so it is not guaranteed. You can edit the bonus rate above, or clear it to hide the bonus lines.</p>
+  <p>The rate table gives the monthly premium for every ₹1,000 of sum assured. Your premium is that rate multiplied by your sum assured divided by 1,000. For example, a rate of 5.15 on a sum assured of ₹1,00,000 gives 5.15 × 100 = ₹515 a month.</p>
+  <p>The rate depends on two things. A younger entry age costs less, and a longer term spreads the cost over more years, so it lowers the monthly premium. Combinations with a term shorter than 5 years are not in the table, which is why some maturity ages are missing for older applicants.</p>
+  <h2>Tips before you apply</h2>
+  <ul>
+    <li>Compare two or three maturity ages. A longer term gives a lower monthly premium but you pay for more years.</li>
+    <li>Choose a premium you can keep paying. Stopping early can reduce what you get back.</li>
+    <li>Keep your age proof ready, as the premium depends on your age at entry.</li>
+  </ul>
+  <p>Opening a related account? Use our <a href="/form">form tool</a> or read the <a href="/guides">guides</a>. This page is general information, not financial advice.</p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Premium rate table</h2>
+  <p class="meta">Monthly premium per ₹1,000 sum assured. A dash means the combination is not offered. Scroll sideways on a phone.</p>
+  <div class="tablewrap">
+  <table class="rates">
+    <thead><tr><th scope="col">Entry age</th>{% for m in maturity_ages %}<th scope="col">Maturity {{ m }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for age, row in rates.items() %}<tr><th scope="row">{{ age }}</th>{% for m in maturity_ages %}<td>{% if m in row %}{{ '%.2f'|format(row[m]) }}{% else %}–{% endif %}</td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% set slot = ad_slot_article %}{% include '_ad.html' %}
+
+<script id="pli-data" type="application/json">{{ rates|tojson }}</script>
+<script src="{{ url_for('static', filename='pli.js') }}"></script>
+{% endblock %}

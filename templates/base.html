@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#c62828">
+<title>{% block title %}{{ site_name }} – Post Office Form Filling Tool & Guides{% endblock %}</title>
+<meta name="description" content="{% block desc %}Free tool and guides to fill India Post account opening forms neatly: savings account, RD, TD, MIS, SSA, PPF, NSC, KVP and SCSS.{% endblock %}">
+<link rel="canonical" href="{{ canonical }}">
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ canonical }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block head_extra %}{% endblock %}
+{% if adsense_client %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client }}" crossorigin="anonymous"></script>
+{% endif %}
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site"><div class="in">
+  <a class="brand" href="/">📮 {{ site_name }}</a>
+  <nav><a href="/">Home</a><a href="/form">Form Tool</a><a href="/calculators">Calculators</a><a href="/guides">Guides</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
+</div></header>
+<main id="main">{% block content %}{% endblock %}</main>
+<footer class="site">
+  <p><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy-policy">Privacy Policy</a><a href="/terms">Terms of Use</a><a href="/disclaimer">Disclaimer</a></p>
+  <p>© {{ year }} {{ site_name }}. An independent tool; not affiliated with or endorsed by India Post or the Government of India.</p>
+</footer>
+<div id="consent">We use cookies to run the site and to show ads. See our <a href="/privacy-policy">Privacy Policy</a>.
+  <button id="consent-ok">OK</button></div>
+<script>
+try{if(!localStorage.getItem('pf_consent')){var c=document.getElementById('consent');c.style.display='block';
+document.getElementById('consent-ok').onclick=function(){localStorage.setItem('pf_consent','1');c.style.display='none'}}}catch(e){}
+</script>
+</body></html>

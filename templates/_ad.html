@@ -1,0 +1,5 @@
+{# usage: {% set slot = ad_slot_article %}{% include '_ad.html' %}  Renders only when AdSense id + slot are set #}
+{% if adsense_client and slot %}
+<div class="ad"><ins class="adsbygoogle" style="display:block" data-ad-client="{{ adsense_client }}" data-ad-slot="{{ slot }}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({});</script></div>
+{% endif %}

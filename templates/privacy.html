@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy – {{ site_name }}{% endblock %}
+{% block content %}<div class="card">
+<h1>Privacy Policy</h1>
+<p class="meta">Last updated: {{ year }}</p>
+<p>This policy explains what information {{ site_name }} ("we", "us") handles when you use {{ site_url }}.</p>
+<h2>Information you enter in the form tool</h2>
+<p>The details you type (name, date of birth, Aadhaar, PAN, address, contact and nominee details) are sent to our server only to generate your PDF. The PDF is created in memory and returned to you. We do not save this information in any database or file, and we do not keep copies of the PDF. Please avoid using the tool on shared or public computers.</p>
+<h2>Information collected automatically</h2>
+<p>Like most websites, our hosting provider may log technical data such as IP address, browser type, pages visited and time of access, for security and troubleshooting.</p>
+<h2>Cookies and advertising</h2>
+<p>We may use Google AdSense to show ads. Google and its partners use cookies, including the DoubleClick cookie, to serve ads based on your visits to this and other websites. You can opt out of personalised advertising at <a href="https://www.google.com/settings/ads" rel="noopener">Google Ads Settings</a> or <a href="https://www.aboutads.info" rel="noopener">aboutads.info</a>. Learn how Google uses data from partner sites at <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">policies.google.com/technologies/partner-sites</a>. We never place ads on, or share form data with, advertisers.</p>
+<p>We also store a small value in your browser (localStorage) to remember that you dismissed the cookie notice.</p>
+<h2>Third parties</h2>
+<p>Third-party vendors, including Google, may collect information from your browser to show and measure ads. We do not control their cookies; please read their policies.</p>
+<h2>Your choices</h2>
+<p>You can block or delete cookies in your browser settings. You may contact us to ask questions about your data or request correction or deletion of anything we hold.</p>
+<h2>Children</h2>
+<p>This site is not directed to children under 13 and we do not knowingly collect their information.</p>
+<h2>Changes</h2>
+<p>We may update this policy from time to time. The date above shows the latest revision.</p>
+<h2>Contact</h2>
+<p>Questions? Email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+</div>{% endblock %}

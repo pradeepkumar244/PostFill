@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Terms of Use – {{ site_name }}{% endblock %}
+{% block content %}<div class="card">
+<h1>Terms of Use</h1>
+<p class="meta">Last updated: {{ year }}</p>
+<p>By using {{ site_name }} you agree to these terms.</p>
+<h2>Use of the service</h2>
+<p>The tool and guides are provided free for personal, lawful use. You must not misuse the site, attempt to disrupt it, scrape it at scale, or use it to prepare forms with false or someone else's information without their permission.</p>
+<h2>Accuracy of output</h2>
+<p>The generated PDF places your typed text on a form layout. You are responsible for checking every field for accuracy and completeness before submitting it to a post office. Forms and requirements can change; we do not guarantee the template is current or will be accepted.</p>
+<h2>No affiliation</h2>
+<p>{{ site_name }} is not affiliated with India Post, the Department of Posts or the Government of India. Names of schemes are used only to describe them.</p>
+<h2>Limitation of liability</h2>
+<p>The service is provided "as is" without warranties. To the extent permitted by law, we are not liable for loss arising from your use of, or reliance on, the site or the generated forms.</p>
+<h2>Changes</h2>
+<p>We may update these terms. Continued use means you accept the updated terms.</p>
+<p>See also: <a href="/privacy-policy">Privacy Policy</a> and <a href="/disclaimer">Disclaimer</a>.</p>
+</div>{% endblock %}

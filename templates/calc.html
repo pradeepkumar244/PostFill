@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ c.h1 }} – {{ site_name }}{% endblock %}
+{% block desc %}{{ c.desc }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{{ c.h1 }}</h1>
+  <p>{{ c.intro }}</p>
+  <form id="calc-form" autocomplete="off" novalidate>
+    <div class="grid">
+    {% for f in c.inputs %}
+      <div><label for="in-{{ f.id }}"><strong>{{ f.label }}</strong></label>
+      {% if f.type == 'select' %}
+        <select id="in-{{ f.id }}" data-in="{{ f.id }}">{% for val, text in f.options %}<option value="{{ val }}"{% if val == f.value %} selected{% endif %}>{{ text }}</option>{% endfor %}</select>
+      {% else %}
+        <input type="number" id="in-{{ f.id }}" data-in="{{ f.id }}" inputmode="decimal" value="{{ f.value }}" min="{{ f.min }}"{% if f.max is defined %} max="{{ f.max }}"{% endif %} step="{{ f.step }}">
+      {% endif %}</div>
+    {% endfor %}
+      <div><label for="in-rate"><strong>Interest rate (% per year)</strong></label>
+        <input type="number" id="in-rate" inputmode="decimal" value="{{ c.rate }}" min="0.1" max="20" step="0.01"></div>
+    </div>
+    <p class="meta">Default rate: as notified for {{ rates_period }}. Rates are reviewed every quarter, so check the current rate at your post office. You can edit the rate to try other values.</p>
+  </form>
+  <noscript><p class="notice">This calculator needs JavaScript to run.</p></noscript>
+  <div id="calc-err" class="notice" role="alert" style="display:none"></div>
+  <div id="calc-out" class="result" aria-live="polite" style="display:none"></div>
+  <div class="notice">This is an estimate for planning only. Actual amounts can differ because of rounding, deposit dates, rule changes and taxes. Confirm with your post office. This is not financial or tax advice.</div>
+</div>
+
+<div class="card">{{ c.body|safe }}</div>
+
+<div class="card">
+  <h2 style="margin-top:0">More calculators</h2>
+  <div class="links">{% for o in others %}<a href="/calculators/{{ o.slug }}">{{ o.name }}</a>{% endfor %}<a href="/pli-calculator">PLI Premium Calculator</a></div>
+</div>
+{% set slot = ad_slot_article %}{% include '_ad.html' %}
+<script id="calc-spec" type="application/json">{{ spec|tojson }}</script>
+<script src="{{ url_for('static', filename='calc.js') }}"></script>
+{% endblock %}

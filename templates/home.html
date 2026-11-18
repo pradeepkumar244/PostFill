@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card hero">
+  <h1>Fill Post Office Account Opening Forms Neatly, in Minutes</h1>
+  <p>{{ site_name }} helps you prepare India Post forms for Savings Account, RD, TD, MIS, SSA, PPF, NSC, KVP and SCSS. Type your details once, check them, and download a clean, print-ready PDF.</p>
+  <p><a class="btn" href="/form">Open the Form Tool</a></p>
+</div>
+<div class="card">
+  <h2 style="margin-top:0">How it works</h2>
+  <ol>
+    <li>Choose the scheme and enter the deposit amount. The amount in words is written for you.</li>
+    <li>Enter applicant, address and nominee details.</li>
+    <li>Download the PDF, print it, check every field and sign at the marked places.</li>
+  </ol>
+  <p>The PDF is generated on request and is not kept on our server. Read the <a href="/privacy-policy">Privacy Policy</a> for details.</p>
+</div>
+<div class="card">
+  <h2 style="margin-top:0">Savings and PLI calculators</h2>
+  <p>Estimate returns on RD, TD, SCSS, PPF, Sukanya Samriddhi, KVP and NSC, or check a PLI premium, before you apply.</p>
+  <p><a class="btn" href="/calculators">Open calculators</a></p>
+</div>
+{% set slot = ad_slot_home %}{% include '_ad.html' %}
+<h2>Guides for first-time depositors</h2>
+<div class="cards">
+{% for g in guides %}
+  <div class="card"><h3><a href="/guides/{{ g.slug }}">{{ g.title }}</a></h3><p>{{ g.summary }}</p></div>
+{% endfor %}
+</div>
+{% endblock %}

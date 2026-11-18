@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ g.title }} – {{ site_name }}{% endblock %}
+{% block desc %}{{ g.summary }}{% endblock %}
+{% block content %}
+<article class="card">
+  <h1>{{ g.title }}</h1>
+  <p class="meta">By the {{ site_name }} team · General information only, not financial advice.</p>
+  {{ g.body|safe }}
+  {% set slot = ad_slot_article %}{% include '_ad.html' %}
+</article>
+<h2>More guides</h2>
+<div class="cards">{% for o in others %}<div class="card"><h3><a href="/guides/{{ o.slug }}">{{ o.title }}</a></h3><p>{{ o.summary }}</p></div>{% endfor %}</div>
+{% endblock %}
