@@ -1,120 +1,214 @@
-
-from flask import Flask, render_template, request, send_file
-from pypdf import PdfReader, PdfWriter
-from reportlab.pdfgen import canvas
-from io import BytesIO
 import os
-import sqlite3
-from flask import jsonify
+from datetime import date
+from io import BytesIO
+
+from flask import Flask, Response, abort, render_template, request, send_file
+from pypdf import PdfReader, PdfWriter
+from reportlab.lib.utils import simpleSplit
+from reportlab.pdfgen import canvas
+
+from calculators import BY_SLUG, CALCS, RATES_PERIOD
+from content import GUIDES
+from pli_data import BONUS_RATE_PER_1000, MATURITY_AGES, MAX_AGE, MIN_AGE, RATES
+
+# ---------------------------------------------------------------- settings --
+# Set these as environment variables on your host (or edit the defaults).
+SITE_NAME = "PostFill"
+SITE_URL = os.environ.get("SITE_URL", "https://www.example.com").rstrip("/")
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "contact@example.com")
+# AdSense publisher id, e.g. "ca-pub-1234567890123456". Leave empty until you have one.
+ADSENSE_CLIENT = os.environ.get("ADSENSE_CLIENT", "")
+# Ad-unit slot ids (created in AdSense after approval). Empty = no ad rendered.
+AD_SLOT_ARTICLE = os.environ.get("AD_SLOT_ARTICLE", "")
+AD_SLOT_HOME = os.environ.get("AD_SLOT_HOME", "")
+
+TEMPLATE_PDF = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pdf_templates", "SB-AOF.pdf")
 
 app = Flask(__name__)
-def save_customer(data):
-    conn = sqlite3.connect("customers.db")
-    cur = conn.cursor()
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # the form is tiny; reject large posts
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS customers (
-        cif TEXT PRIMARY KEY,
-        applicant_name TEXT,
-        father_name TEXT,
-        dob TEXT,
-        gender TEXT,
-        aadhaar TEXT,
-        pan TEXT,
-        mobile TEXT,
-        email TEXT,
-        present_address TEXT,
-        permanent_address TEXT
-    )
-    """)
 
-    cur.execute("""
-    INSERT OR REPLACE INTO customers
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        data.get("cif", ""),
-        data.get("applicant_name", ""),
-        data.get("father_name", ""),
-        data.get("dob", ""),
-        data.get("gender", ""),
-        data.get("aadhaar", ""),
-        data.get("pan", ""),
-        data.get("mobile", ""),
-        data.get("email", ""),
-        data.get("present_address", ""),
-        data.get("permanent_address", "")
-    ))
+@app.context_processor
+def inject_globals():
+    return dict(site_name=SITE_NAME, site_url=SITE_URL, contact_email=CONTACT_EMAIL,
+                adsense_client=ADSENSE_CLIENT, ad_slot_article=AD_SLOT_ARTICLE,
+                ad_slot_home=AD_SLOT_HOME, year=date.today().year,
+                canonical=SITE_URL + request.path)
 
-    conn.commit()
-    conn.close()
 
+# --------------------------------------------------------- security headers --
+_GOOGLE_ADS = ("https://pagead2.googlesyndication.com https://*.googlesyndication.com "
+               "https://*.google.com https://*.doubleclick.net https://*.googleadservices.com "
+               "https://adservice.google.com https://partner.googleadservices.com "
+               "https://googleads.g.doubleclick.net https://tpc.googlesyndication.com")
+
+CSP = "; ".join([
+    "default-src 'self'",
+    f"script-src 'self' 'unsafe-inline' {_GOOGLE_ADS}",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    f"connect-src 'self' {_GOOGLE_ADS}",
+    f"frame-src {_GOOGLE_ADS}",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+])
+
+
+@app.after_request
+def security_headers(resp):
+    resp.headers["Content-Security-Policy"] = CSP
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["X-Frame-Options"] = "SAMEORIGIN"
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    resp.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    if request.is_secure or request.headers.get("X-Forwarded-Proto") == "https":
+        resp.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    if request.path == "/generate":
+        # the response contains personal data: never cache it anywhere
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        resp.headers["Pragma"] = "no-cache"
+    return resp
+
+
+# ------------------------------------------------------------------ pages ---
 @app.route("/")
 def home():
-    return render_template("index.html")
-@app.route("/customer/<cif>")
-def customer(cif):
+    return render_template("home.html", guides=GUIDES)
 
-    conn = sqlite3.connect("customers.db")
-    cur = conn.cursor()
 
-    cur.execute("SELECT * FROM customers WHERE cif=?", (cif,))
-    row = cur.fetchone()
+@app.route("/form")
+def form():
+    return render_template("tool.html")
 
-    conn.close()
 
-    if row:
-        return jsonify({
-            "applicant_name": row[1],
-            "father_name": row[2],
-            "dob": row[3],
-            "gender": row[4],
-            "aadhaar": row[5],
-            "pan": row[6],
-            "mobile": row[7],
-            "email": row[8],
-            "present_address": row[9],
-            "permanent_address": row[10]
-        })
+@app.route("/calculators")
+def calculators():
+    return render_template("calculators.html", calcs=CALCS, rates_period=RATES_PERIOD)
 
-    return jsonify({})
+
+@app.route("/calculators/<slug>")
+def calculator(slug):
+    c = BY_SLUG.get(slug)
+    if not c:
+        abort(404)
+    spec = {"key": c["key"], "rate_by": c.get("rate_by")}
+    return render_template("calc.html", c=c, spec=spec, rates_period=RATES_PERIOD,
+                           others=[x for x in CALCS if x["slug"] != slug])
+
+
+@app.route("/pli-calculator")
+def pli_calculator():
+    return render_template("pli.html", rates=RATES, maturity_ages=MATURITY_AGES,
+                           min_age=MIN_AGE, max_age=MAX_AGE,
+                           bonus_rate=BONUS_RATE_PER_1000)
+
+
+@app.route("/guides")
+def guides():
+    return render_template("guides.html", guides=GUIDES)
+
+
+@app.route("/guides/<slug>")
+def guide(slug):
+    g = next((x for x in GUIDES if x["slug"] == slug), None)
+    if not g:
+        abort(404)
+    others = [x for x in GUIDES if x["slug"] != slug][:4]
+    return render_template("guide.html", g=g, others=others)
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+
+@app.route("/privacy-policy")
+def privacy():
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
+@app.route("/disclaimer")
+def disclaimer():
+    return render_template("disclaimer.html")
+
+
+@app.errorhandler(404)
+def not_found(_e):
+    return render_template("404.html"), 404
+
+
+# ------------------------------------------------- crawler / AdSense files --
+@app.route("/robots.txt")
+def robots():
+    body = f"User-agent: *\nAllow: /\nDisallow: /generate\n\nSitemap: {SITE_URL}/sitemap.xml\n"
+    return Response(body, mimetype="text/plain")
+
+
+@app.route("/ads.txt")
+def ads_txt():
+    if not ADSENSE_CLIENT:
+        abort(404)
+    pub = ADSENSE_CLIENT.replace("ca-", "", 1)  # ca-pub-123 -> pub-123
+    return Response(f"google.com, {pub}, DIRECT, f08c47fec0942fa0\n", mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    paths = ["/", "/form", "/calculators", "/pli-calculator", "/guides", "/about", "/contact", "/privacy-policy",
+             "/terms", "/disclaimer"] + [f"/calculators/{c['slug']}" for c in CALCS] \
+        + [f"/guides/{g['slug']}" for g in GUIDES]
+    urls = "".join(f"<url><loc>{SITE_URL}{p}</loc></url>" for p in paths)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>')
+    return Response(xml, mimetype="application/xml")
+
+
+# ------------------------------------------------------------- PDF filling --
+def draw_wrapped_text(c, text, x, y, max_width=120, font="Helvetica", font_size=8, leading=10):
+    c.setFont(font, font_size)
+    for line in simpleSplit(str(text or ""), font, font_size, max_width):
+        c.drawString(x, y, line)
+        y -= leading
 
 
 @app.route("/generate", methods=["POST"])
 def generate():
+    data = {k: v[:300] for k, v in request.form.to_dict().items()}
 
-    data = request.form.to_dict()
-
-    template_pdf = "pdf_templates/SB-AOF.pdf"
-
-    reader = PdfReader(template_pdf)
+    reader = PdfReader(TEMPLATE_PDF)
     writer = PdfWriter()
 
     for page_num, page in enumerate(reader.pages):
-
         packet = BytesIO()
-
         width = float(page.mediabox.width)
         height = float(page.mediabox.height)
-
         c = canvas.Canvas(packet, pagesize=(width, height))
 
-        # PAGE 1
+        # ---- PAGE 1 (coordinates unchanged from the original app) ----
         if page_num == 0:
-
             c.setFont("Helvetica-Bold", 9)
-
             c.drawString(48, 611, data.get("applicant_name", ""))
-           
+
             c.setFont("Helvetica-Bold", 16)
             c.drawString(23, 594, data.get("scheme", ""))
 
             c.setFont("Helvetica-Bold", 18)
-        
             cif = str(data.get("cif", ""))
-            x = 403  
+            x = 403
             y = 744
             gap = 19
-
             for digit in cif:
                 c.drawString(x, y, digit)
                 x += gap
@@ -127,8 +221,8 @@ def generate():
             c.drawString(194, 322, data.get("aadhaar", ""))
             c.drawString(194, 308, data.get("pan", ""))
 
-            c.drawString(194, 262, data.get("present_address", ""))
-            c.drawString(194, 227, data.get("permanent_address", ""))
+            draw_wrapped_text(c, data.get("present_address", ""), 194, 282)
+            draw_wrapped_text(c, data.get("permanent_address", ""), 194, 247)
 
             c.drawString(194, 217, data.get("mobile", ""))
             c.drawString(194, 205, data.get("email", ""))
@@ -137,40 +231,26 @@ def generate():
             c.drawString(136, 422, data.get("deposit", ""))
             c.drawString(204, 422, data.get("deposit_words", ""))
 
-        
-
-        # PAGE 2
+        # ---- PAGE 2 ----
         if page_num == 1:
-
             c.setFont("Helvetica", 8)
-
-            c.drawString(64, 349, data.get("nominee_name", ""))
-            c.drawString(71, 325, data.get("nominee_relation", ""))
-            c.drawString(424, 352, data.get("nominee_share", ""))
+            c.drawString(64, 360, data.get("nominee_name", ""))
+            c.drawString(71, 349, f'({data.get("nominee_relation", "")})')
+            c.drawString(424, 360, f'{data.get("nominee_share", "")}%')
 
         c.save()
-
         packet.seek(0)
-
-        overlay = PdfReader(packet)
-
-        page.merge_page(overlay.pages[0])
-
+        page.merge_page(PdfReader(packet).pages[0])
         writer.add_page(page)
 
-    output_pdf = "generated_forms/final_form.pdf"
-
-    with open(output_pdf, "wb") as output:
-        writer.write(output)
-
-    save_customer(data)
-    return send_file(
-        output_pdf,
-        as_attachment=True,
-        download_name="PostOffice_Form.pdf"
-    )
+    # Built entirely in memory and streamed back. Nothing about the customer is
+    # written to disk or to a database, so there is nothing to leak or mix up.
+    out = BytesIO()
+    writer.write(out)
+    out.seek(0)
+    return send_file(out, mimetype="application/pdf", as_attachment=True,
+                     download_name="PostOffice_Form.pdf")
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
