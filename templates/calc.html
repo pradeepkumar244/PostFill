@@ -31,6 +31,7 @@
 <div class="card">
   <h2 style="margin-top:0">More calculators</h2>
   <div class="links">{% for o in others %}<a href="/calculators/{{ o.slug }}">{{ o.name }}</a>{% endfor %}<a href="/pli-calculator">PLI Premium Calculator</a></div>
+  <a href="/rpli-calculator">RPLI Premium Calculator</a>
 </div>
 {% set slot = ad_slot_article %}{% include '_ad.html' %}
 <script id="calc-spec" type="application/json">{{ spec|tojson }}</script>
