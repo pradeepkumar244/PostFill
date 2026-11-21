@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}RPLI Premium Calculator – Gram Santosh Premium, Bonus and Maturity | {{ site_name }}{% endblock %}
+{% block desc %}Free RPLI (Rural Postal Life Insurance) premium calculator for the endowment plan: monthly, quarterly and yearly premium, estimated bonus and maturity amount by age and sum assured. Includes the full rate table.{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>RPLI Premium Calculator</h1>
+  <p>Estimate the premium for a Rural Postal Life Insurance (RPLI) endowment policy (Gram Santosh). Enter your age at entry, choose the maturity age and type the sum assured. You will see the monthly, quarterly and yearly premium, plus the estimated bonus and maturity amount. Nothing you enter leaves your device.</p>
+
+  <div class="grid">
+    <div><label for="rpli-age"><strong>Age at entry</strong> ({{ min_age }}–{{ max_age }})</label>
+      <input type="number" id="rpli-age" inputmode="numeric" min="{{ min_age }}" max="{{ max_age }}" placeholder="e.g. 30"></div>
+    <div><label for="rpli-mat"><strong>Age at maturity</strong></label>
+      <select id="rpli-mat"><option value="">Enter a valid age first</option></select></div>
+    <div><label for="rpli-sa"><strong>Sum assured (₹)</strong></label>
+      <input type="number" id="rpli-sa" inputmode="numeric" min="{{ min_sa }}" max="{{ max_sa }}" step="1000" placeholder="e.g. 500000"></div>
+    <div><label for="rpli-bonus"><strong>Bonus rate</strong> (₹ per ₹1,000 per year)</label>
+      <input type="number" id="rpli-bonus" inputmode="decimal" min="0" step="0.5" value="{{ bonus_rate }}"></div>
+  </div>
+  <noscript><p class="notice">This calculator needs JavaScript. You can still read the rate tables below.</p></noscript>
+
+  <div id="rpli-err" class="notice" role="alert" style="display:none"></div>
+  <div id="rpli-out" class="result" aria-live="polite" style="display:none">
+    <h2 style="margin-top:0">Estimated premium</h2>
+    <p>Policy term: <strong id="rpli-term"></strong>. Choose the payment mode that suits you:</p>
+    <div class="tablewrap"><table class="rates">
+      <thead><tr><th scope="col">Pay</th><th scope="col">Rate per ₹1,000</th><th scope="col">Each instalment</th><th scope="col">Per year</th><th scope="col">Total over term</th></tr></thead>
+      <tbody id="rpli-modes"></tbody>
+    </table></div>
+    <ul>
+      <li id="rpli-bonus-row">Estimated bonus: <strong id="rpli-bonus-amt"></strong></li>
+      <li id="rpli-maturity-row">Estimated maturity amount (sum assured + bonus): <strong id="rpli-maturity"></strong></li>
+    </ul>
+  </div>
+  <div class="notice">This is an estimate from the premium rate tables and the bonus rate you enter. Actual premium can differ because of rebates, taxes or charges and changes in rules. Confirm with your post office before you buy.</div>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">How the calculator works</h2>
+  <p>The rate tables give the premium for every ₹1,000 of sum assured, separately for monthly, quarterly and yearly payment. Your instalment is that rate multiplied by your sum assured divided by 1,000. For example, a monthly rate of 5.10 on ₹1,00,000 gives 5.10 × 100 = ₹510 a month.</p>
+  <p>The bonus is estimated as sum assured ÷ 1,000 × bonus rate × policy term in years, and the maturity amount is the sum assured plus that bonus. The bonus rate is declared by the Department of Posts every year and is not guaranteed, so you can edit it above or clear it to hide the bonus lines. Terminal bonus, if any, is not included.</p>
+  <h2>About RPLI</h2>
+  <p>Rural Postal Life Insurance is a government-backed life insurance scheme for people living in rural areas. The endowment plan pays the sum assured plus bonus when you reach the chosen maturity age, or to your nominee if you die earlier. You can choose to stop paying premiums at age 35, 40, 45, 50, 55, 58 or 60, and entry age is {{ min_age }} to {{ max_age }}. Terms shorter than 5 years are not offered, which is why some maturity ages are missing for older applicants.</p>
+  <h2>Tips before you apply</h2>
+  <ul>
+    <li>Compare the three payment modes. Paying yearly costs less in total than paying monthly, but needs a larger amount at once.</li>
+    <li>Compare two or three maturity ages. A longer term has a lower instalment, but you pay for more years.</li>
+    <li>Add a nominee and keep your age proof ready, since premium depends on your age at entry.</li>
+  </ul>
+  <p>Working in a government or public-sector job? Try the <a href="/pli-calculator">PLI calculator</a>. For account forms, use our <a href="/form">form tool</a>. This page is general information, not financial advice.</p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Premium rate tables</h2>
+  <p class="meta">Premium per ₹1,000 sum assured. A dash means the combination is not offered. Scroll sideways on a phone.</p>
+  {% for key, title in [('monthly','Monthly premium'),('quarterly','Quarterly premium'),('annual','Yearly premium')] %}
+  <h3>{{ title }}</h3>
+  <div class="tablewrap">
+  <table class="rates">
+    <thead><tr><th scope="col">Entry age</th>{% for m in maturity_ages %}<th scope="col">Maturity {{ m }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for age, row in rates[key].items() %}<tr><th scope="row">{{ age }}</th>{% for m in maturity_ages %}<td>{% if m in row %}{{ '%.2f'|format(row[m]) }}{% else %}–{% endif %}</td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endfor %}
+</div>
+{% set slot = ad_slot_article %}{% include '_ad.html' %}
+
+<script id="rpli-data" type="application/json">{{ rates|tojson }}</script>
+<script src="{{ url_for('static', filename='rpli.js') }}"></script>
+{% endblock %}
