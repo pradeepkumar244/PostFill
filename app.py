@@ -10,12 +10,13 @@ from reportlab.pdfgen import canvas
 from calculators import BY_SLUG, CALCS, RATES_PERIOD
 from content import GUIDES
 from pli_data import BONUS_RATE_PER_1000, MATURITY_AGES, MAX_AGE, MIN_AGE, RATES
+import rpli_data
 
 # ---------------------------------------------------------------- settings --
 # Set these as environment variables on your host (or edit the defaults).
 SITE_NAME = "PostFill"
 SITE_URL = os.environ.get("SITE_URL", "https://www.example.com").rstrip("/")
-CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "contact@example.com")
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "postfill24x7@gmail.com")
 # AdSense publisher id, e.g. "ca-pub-1234567890123456". Leave empty until you have one.
 ADSENSE_CLIENT = os.environ.get("ADSENSE_CLIENT", "")
 # Ad-unit slot ids (created in AdSense after approval). Empty = no ad rendered.
@@ -104,7 +105,12 @@ def pli_calculator():
                            min_age=MIN_AGE, max_age=MAX_AGE,
                            bonus_rate=BONUS_RATE_PER_1000)
 
-
+@app.route("/rpli-calculator")
+def rpli_calculator():
+    return render_template("rpli.html", rates=rpli_data.RATES, maturity_ages=rpli_data.MATURITY_AGES,
+                           min_age=rpli_data.MIN_AGE, max_age=rpli_data.MAX_AGE,
+                           min_sa=rpli_data.MIN_SUM_ASSURED, max_sa=rpli_data.MAX_SUM_ASSURED,
+                           bonus_rate=rpli_data.BONUS_RATE_PER_1000)
 @app.route("/guides")
 def guides():
     return render_template("guides.html", guides=GUIDES)
@@ -166,7 +172,7 @@ def ads_txt():
 
 @app.route("/sitemap.xml")
 def sitemap():
-    paths = ["/", "/form", "/calculators", "/pli-calculator", "/guides", "/about", "/contact", "/privacy-policy",
+    paths = ["/", "/form", "/calculators", "/pli-calculator", "/rpli-calculator", "/guides", "/about", "/contact", "/privacy-policy",
              "/terms", "/disclaimer"] + [f"/calculators/{c['slug']}" for c in CALCS] \
         + [f"/guides/{g['slug']}" for g in GUIDES]
     urls = "".join(f"<url><loc>{SITE_URL}{p}</loc></url>" for p in paths)
