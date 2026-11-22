@@ -15,7 +15,7 @@ import rpli_data
 # ---------------------------------------------------------------- settings --
 # Set these as environment variables on your host (or edit the defaults).
 SITE_NAME = "PostFill"
-SITE_URL = os.environ.get("SITE_URL", "https://www.example.com").rstrip("/")
+SITE_URL = os.environ.get("SITE_URL", "https://postfill.onrender.com").rstrip("/")
 CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "postfill24x7@gmail.com")
 # AdSense publisher id, e.g. "ca-pub-1234567890123456". Leave empty until you have one.
 ADSENSE_CLIENT = os.environ.get("ADSENSE_CLIENT", "")
