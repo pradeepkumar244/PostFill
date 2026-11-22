@@ -2,7 +2,7 @@ import os
 from datetime import date
 from io import BytesIO
 
-from flask import Flask, Response, abort, render_template, request, send_file
+from flask import Flask, Response, abort, render_template, request, send_file, send_from_directory
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
@@ -156,6 +156,11 @@ def not_found(_e):
 
 
 # ------------------------------------------------- crawler / AdSense files --
+@app.route("/google<token>.html")
+def google_verification(token):
+    """Serves Google Search Console's verification file from the verification/ folder."""
+    return send_from_directory(os.path.join(app.root_path, "verification"), f"google{token}.html")
+    
 @app.route("/robots.txt")
 def robots():
     body = f"User-agent: *\nAllow: /\nDisallow: /generate\n\nSitemap: {SITE_URL}/sitemap.xml\n"
