@@ -156,10 +156,12 @@ def not_found(_e):
 
 
 # ------------------------------------------------- crawler / AdSense files --
-@app.route("/google<token>.html")
-def google_verification(token):
-    """Serves Google Search Console's verification file from the verification/ folder."""
-    return send_from_directory(os.path.join(app.root_path, "verification"), f"google{token}.html")
+GOOGLE_VERIFICATION_FILE = "google57c968859b383c0a.html"  # replace with your exact file name
+
+
+@app.route("/" + GOOGLE_VERIFICATION_FILE)
+def google_site_verification():
+    return Response("google-site-verification: " + GOOGLE_VERIFICATION_FILE, mimetype="text/html")
     
 @app.route("/robots.txt")
 def robots():
